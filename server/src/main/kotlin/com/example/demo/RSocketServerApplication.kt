@@ -1,8 +1,12 @@
 package com.example.demo
 
+import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.CollectionOptions
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.data.mongodb.repository.Tailable
@@ -12,7 +16,17 @@ import reactor.core.publisher.Flux
 import java.time.Instant
 
 @SpringBootApplication
-class RSocketServerApplication
+class RSocketServerApplication{
+
+    @Bean
+    fun runner(template: ReactiveMongoTemplate) = CommandLineRunner {
+        println("running CommandLineRunner...")
+        template.executeCommand("{\"convertToCapped\": \"messages\", size: 100000}")
+                .subscribe(::println)
+//        template.dropCollection(Message::class.java).then().block();
+//        template.createCollection(Message::class.java, CollectionOptions.empty().capped().size(100000L)).then().block()
+    }
+}
 
 fun main(args: Array<String>) {
     runApplication<RSocketServerApplication>(*args)
@@ -21,16 +35,16 @@ fun main(args: Array<String>) {
 @Controller
 class MessageController(private val messages: MessageRepository) {
     @MessageMapping("send")
-    fun hello(p: ChatMessage) = this.messages.save(p).then()
+    fun hello(p: String) = this.messages.save(Message(body = p, sentAt = Instant.now())).log().then()
 
     @MessageMapping("messages")
-    fun messageStream(): Flux<ChatMessage> = this.messages.getMessagesBy()
+    fun messageStream(): Flux<Message> = this.messages.getMessagesBy().log()
 }
 
-interface MessageRepository : ReactiveMongoRepository<ChatMessage, String> {
+interface MessageRepository : ReactiveMongoRepository<Message, String> {
     @Tailable
-    fun getMessagesBy(): Flux<ChatMessage>
+    fun getMessagesBy(): Flux<Message>
 }
 
-@Document
-data class ChatMessage(@Id var id: String? = null, var body: String, var sentAt: Instant = Instant.now())
+@Document(collection = "messages")
+data class Message(@Id var id: String? = null, var body: String, var sentAt: Instant = Instant.now())
