@@ -10,6 +10,7 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.util.MimeTypeUtils
 import reactor.test.StepVerifier
 import java.net.URI
+import java.time.Duration
 
 @SpringBootTest
 class RSocketServerApplicationTests {
@@ -20,15 +21,18 @@ class RSocketServerApplicationTests {
     @Test
     fun contextLoads() {
 
-        rSocketRequester.route("messages")
-                .retrieveFlux(ChatMessage::class.java)
+        val verifier= rSocketRequester.route("messages")
+                .retrieveFlux(Message::class.java)
                 .log()
                 .`as` { StepVerifier.create(it) }
-                .consumeNextWith { it ->  assertThat(it.body).isEqualTo("test message")}
-                .consumeNextWith { it ->  assertThat(it.body).isEqualTo("test message2")}
+                .consumeNextWith { it -> assertThat(it.body).isEqualTo("test message") }
+                .consumeNextWith { it -> assertThat(it.body).isEqualTo("test message2") }
                 .thenCancel()
-        rSocketRequester.route("send").data(ChatMessage(body = "test message")).send().then()
-        rSocketRequester.route("send").data(ChatMessage(body = "test message2")).send().then()
+                .verifyLater()
+        rSocketRequester.route("send").data("test message").send().then().block()
+        rSocketRequester.route("send").data("test message2").send().then().block()
+
+        verifier.verify(Duration.ofSeconds(5))
     }
 
     @TestConfiguration
