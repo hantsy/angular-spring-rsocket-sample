@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.CollectionOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
@@ -16,15 +15,12 @@ import reactor.core.publisher.Flux
 import java.time.Instant
 
 @SpringBootApplication
-class RSocketServerApplication{
+class RSocketServerApplication {
 
     @Bean
     fun runner(template: ReactiveMongoTemplate) = CommandLineRunner {
         println("running CommandLineRunner...")
-        template.executeCommand("{\"convertToCapped\": \"messages\", size: 100000}")
-                .subscribe(::println)
-//        template.dropCollection(Message::class.java).then().block();
-//        template.createCollection(Message::class.java, CollectionOptions.empty().capped().size(100000L)).then().block()
+        template.executeCommand("{\"convertToCapped\": \"messages\", size: 100000}").log().subscribe(::println)
     }
 }
 
