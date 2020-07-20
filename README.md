@@ -6,6 +6,12 @@ This sample is to demonstrate a chat application using the following cutting-edg
 * Spring WebFlux based RSocket server which uses WebSocket as transport protocol
 * Spring Data MongoDB based  `@Tailable`  query result as an infinite stream
 
+## Prerequisites
+
+* NodeJS  14
+* OpenJDK 14
+* Docker for Windows/MacOS
+
 ## Build
 
 Before running the application, you should build and run client and server side respectively.
@@ -50,3 +56,4 @@ Open a browser and  navigate to http://localhost:4200.
 ## Reference
 
 * [rsocket-js samples](https://github.com/rsocket/rsocket-js/blob/master/packages/rsocket-examples)
+* [RSocket With Spring Boot + JS: Zero to Hero ](https://dzone.com/articles/rsocket-with-spring-boot-amp-js-zero-to-hero)
